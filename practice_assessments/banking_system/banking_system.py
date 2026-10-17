@@ -41,3 +41,18 @@ class BankingSystem(ABC):
         "<account_id>(<outgoing_total>)". Highest first, ties by account_id ascending.
         """
         return []
+
+    def pay(self, timestamp: int, account_id: str, amount: int) -> str | None:
+        """
+        Withdraw `amount` from `account_id` as a payment that earns 2% cashback
+        (rounded down) 24 hours later. Return "payment<k>", or None if the account
+        doesn't exist or has too little money.
+        """
+        return None
+
+    def get_payment_status(self, timestamp: int, account_id: str, payment: str) -> str | None:
+        """
+        Return "IN_PROGRESS" or "CASHBACK_RECEIVED" for `payment`, or None if the
+        account or payment doesn't exist, or the payment belongs to another account.
+        """
+        return None
