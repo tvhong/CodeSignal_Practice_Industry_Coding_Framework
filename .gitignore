@@ -1,3 +1,5 @@
 /.pytest_cache
 
 practice_assessments/**/__pycache__/*
+
+.claude/
