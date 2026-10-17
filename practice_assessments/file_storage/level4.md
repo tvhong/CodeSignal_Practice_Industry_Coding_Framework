@@ -61,3 +61,5 @@ Files now might have a specified time to live on the server. Implement extension
 - **ROLLBACK(timestamp)**
   - Rollback the state of the file storage to the state specified in the timestamp.
   - All ttls should be recalculated accordingly.
+
+2 min left. Lvl4 is ill specified though
