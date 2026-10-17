@@ -34,3 +34,10 @@ class BankingSystem(ABC):
         doesn't exist, both are the same account, or the source has too little money.
         """
         return None
+
+    def top_spenders(self, timestamp: int, n: int) -> list[str]:
+        """
+        Return up to `n` accounts with the highest outgoing totals, formatted as
+        "<account_id>(<outgoing_total>)". Highest first, ties by account_id ascending.
+        """
+        return []
