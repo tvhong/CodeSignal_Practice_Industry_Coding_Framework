@@ -19,6 +19,8 @@ class Command(StrEnum):
     FILE_COPY_AT = "FILE_COPY_AT"
     FILE_SEARCH_AT = "FILE_SEARCH_AT"
 
+    ROLLBACK = "ROLLBACK"
+
 
 @dataclass
 class File:
@@ -48,21 +50,37 @@ class File:
 
 # name -> File
 data: dict[str, File] = {}
+history: list[list[str]] = []
 
 
-def simulate_coding_framework(commands: list[list[str]]) -> list[str]:
+def simulate_coding_framework(
+    commands: list[list[str]],
+    new_data: bool = True,
+    new_history=True,
+) -> list[str]:
     """
     Simulates a coding framework operation on a list of lists of strings.
 
     Parameters:
     commands (List[List[str]]): The list of commands and params
     """
+    global data, history
+
+    if new_data:
+        data = {}
+
+    if new_history:
+        history = []
+
     results: list[str] = []
     for command in commands:
         cmd, args = command[0], command[1:]
         fn = handlers[cmd]
         result = fn(*args)
         results.append(result)
+
+        if cmd != str(Command.ROLLBACK):
+            history.append(command)
 
     return results
 
@@ -164,6 +182,19 @@ def search_at(timestamp: str, prefix: str) -> str:
     return f"found at [{file_names}]"
 
 
+def rollback(timestamp: str) -> str:
+    global history
+    ts = parse_timestamp(timestamp)
+
+    applicable_history = [h for h in history if parse_timestamp(h[1]) <= ts]
+    out = simulate_coding_framework(applicable_history, new_data=True, new_history=True)
+
+    p("rollback applicable history", applicable_history)
+    p("rollback out", out)
+
+    return f"rollback to {timestamp}"
+
+
 def in_fs(name: str, ts: int):
     return name in data and data[name].is_available(ts)
 
@@ -177,4 +208,5 @@ handlers: dict[str, Callable[..., str]] = {
     str(Command.FILE_GET_AT): get_at,
     str(Command.FILE_COPY_AT): fscopy_at,
     str(Command.FILE_SEARCH_AT): search_at,
+    str(Command.ROLLBACK): rollback,
 }
