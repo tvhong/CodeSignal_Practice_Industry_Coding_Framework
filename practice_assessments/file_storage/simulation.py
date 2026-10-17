@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Callable
 
+DEBUG = True
+
 
 class Command(StrEnum):
     FILE_UPLOAD = "FILE_UPLOAD"
@@ -14,13 +16,30 @@ class Command(StrEnum):
 @dataclass
 class File:
     name: str
-    size: str
+    size: int
+
+    def __init__(self, name: str, size: str):
+        self.name = name
+        self.size = parse_size(size)
 
     def __str__(self) -> str:
         return self.name
 
 
-def upload(name: str, size: int) -> str:
+def p(*args, **kwargs):
+    if DEBUG:
+        print(*args, **kwargs)
+
+
+def parse_size(s: str) -> int:
+    size = 0
+    if s.endswith("kb"):
+        size = int(s[:-2])
+
+    return size
+
+
+def upload(name: str, size: str) -> str:
     if name in data:
         raise RuntimeError("File already exists")
 
@@ -51,6 +70,7 @@ def search(prefix: str) -> str:
             files.append(data[key])
 
     files = sorted(files, key=lambda f: f.size, reverse=True)[:10]
+    p("search", files)
     file_names = ", ".join(f.name for f in files)
     return f"found [{file_names}]"
 
