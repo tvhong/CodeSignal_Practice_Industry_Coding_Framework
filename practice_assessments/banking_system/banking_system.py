@@ -56,3 +56,17 @@ class BankingSystem(ABC):
         account or payment doesn't exist, or the payment belongs to another account.
         """
         return None
+
+    def merge_accounts(self, timestamp: int, account_id_1: str, account_id_2: str) -> bool:
+        """
+        Merge `account_id_2` into `account_id_1` and remove `account_id_2`.
+        Return False if the ids are the same or either account doesn't exist.
+        """
+        return False
+
+    def get_balance(self, timestamp: int, account_id: str, time_at: int) -> int | None:
+        """
+        Return the balance `account_id` had at `time_at`, or None if the account
+        didn't exist at that time.
+        """
+        return None
