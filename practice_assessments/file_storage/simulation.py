@@ -8,12 +8,16 @@ class Command(StrEnum):
     FILE_UPLOAD = "FILE_UPLOAD"
     FILE_GET = "FILE_GET"
     FILE_COPY = "FILE_COPY"
+    FILE_SEARCH = "FILE_SEARCH"
 
 
 @dataclass
 class File:
     name: str
     size: str
+
+    def __str__(self) -> str:
+        return self.name
 
 
 def upload(name: str, size: int) -> str:
@@ -40,12 +44,24 @@ def fscopy(src: str, dest: str) -> str:
     return f"copied {src} to {dest}"
 
 
+def search(prefix: str) -> str:
+    files: list[File] = []
+    for key in data:
+        if key.startswith(prefix):
+            files.append(data[key])
+
+    files = sorted(files, key=lambda f: f.size, reverse=True)[:10]
+    file_names = ", ".join(f.name for f in files)
+    return f"found [{file_names}]"
+
+
 # name -> File
 data: dict[str, File] = {}
 handlers: dict[str, Callable[..., str]] = {
     str(Command.FILE_UPLOAD): upload,
     str(Command.FILE_GET): get,
     str(Command.FILE_COPY): fscopy,
+    str(Command.FILE_SEARCH): search,
 }
 
 
