@@ -94,7 +94,7 @@ def upload(name: str, size: str) -> str:
 
 def get(name: str) -> str:
     if name not in data:
-        return ""
+        return "file not found"
 
     return f"got {name}"
 
@@ -104,6 +104,7 @@ def fscopy(src: str, dest: str) -> str:
         raise RuntimeError(f"source file {src} doesn't exist")
 
     data[dest] = copy.copy(data[src])
+    data[dest].name = dest
 
     return f"copied {src} to {dest}"
 
@@ -133,7 +134,7 @@ def upload_at(timestamp: str, name: str, size: str, ttl: None | int = None) -> s
 def get_at(timestamp: str, name: str) -> str:
     ts = parse_timestamp(timestamp)
     if not in_fs(name, ts):
-        return ""
+        return "file not found"
 
     return f"got at {name}"
 
@@ -144,6 +145,7 @@ def fscopy_at(timestamp: str, src: str, dest: str) -> str:
         raise RuntimeError(f"source file {src} doesn't exist")
 
     data[dest] = copy.copy(data[src])
+    data[dest].name = dest
 
     return f"copied at {src} to {dest}"
 
