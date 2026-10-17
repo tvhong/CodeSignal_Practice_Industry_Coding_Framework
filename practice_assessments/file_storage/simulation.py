@@ -31,8 +31,9 @@ class File:
         self.name = name
         self.size = parse_size(size)
 
+        self.avail_from = now
         if ttl is None:
-            self.avail_from = now
+            self.avail_to = None
         else:
             self.avail_to = now + ttl
 
