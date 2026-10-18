@@ -78,7 +78,7 @@ class BankingSystemImpl(BankingSystem):
         self.payments: list[Payment] = list()
 
     def create_account(self, timestamp: int, account_id: str) -> bool:
-        self._process_cashbacks(timestamp)
+        self._process(timestamp)
 
         if self._exists(account_id):
             return False
@@ -87,7 +87,7 @@ class BankingSystemImpl(BankingSystem):
         return True
 
     def deposit(self, timestamp: int, account_id: str, amount: int) -> int | None:
-        self._process_cashbacks(timestamp)
+        self._process(timestamp)
 
         if not self._exists(account_id):
             return None
@@ -112,7 +112,7 @@ class BankingSystemImpl(BankingSystem):
         Return the source balance after the transfer, or None if either account
         doesn't exist, both are the same account, or the source has too little money.
         """
-        self._process_cashbacks(timestamp)
+        self._process(timestamp)
 
         if not self._exists(source_account_id) or not self._exists(target_account_id):
             return None
@@ -136,7 +136,7 @@ class BankingSystemImpl(BankingSystem):
         Return up to `n` accounts with the highest outgoing totals, formatted as
         "<account_id>(<outgoing_total>)". Highest first, ties by account_id ascending.
         """
-        self._process_cashbacks(timestamp)
+        self._process(timestamp)
 
         accounts = sorted(
             self.accounts.values(),
@@ -150,7 +150,7 @@ class BankingSystemImpl(BankingSystem):
         (rounded down) 24 hours later. Return "payment<k>", or None if the account
         doesn't exist or has too little money.
         """
-        self._process_cashbacks(timestamp)
+        self._process(timestamp)
 
         if not self._exists(account_id):
             return None
@@ -172,7 +172,7 @@ class BankingSystemImpl(BankingSystem):
         Return "IN_PROGRESS" or "CASHBACK_RECEIVED" for `payment`, or None if the
         account or payment doesn't exist, or the payment belongs to another account.
         """
-        self._process_cashbacks(timestamp)
+        self._process(timestamp)
 
         if not self._exists(account_id):
             return None
@@ -192,7 +192,7 @@ class BankingSystemImpl(BankingSystem):
         Merge `account_id_2` into `account_id_1` and remove `account_id_2`.
         Return False if the ids are the same or either account doesn't exist.
         """
-        self._process_cashbacks(timestamp)
+        self._process(timestamp)
         if not self._exists(account_id_1) or not self._exists(account_id_2):
             return False
 
@@ -215,7 +215,10 @@ class BankingSystemImpl(BankingSystem):
     def _get(self, account_id: str):
         return self.accounts[account_id]
 
-    def _process_cashbacks(self, timestamp: int) -> None:
+    def _process(self, timestamp: int) -> None:
+        self._process_cashback(timestamp)
+
+    def _process_cashback(self, timestamp: int) -> None:
         for payment in self.payments:
             if not payment.payout and timestamp >= payment.cashback_timestamp:
                 self.accounts[payment.from_account].deposit(payment.cashback_amount)
