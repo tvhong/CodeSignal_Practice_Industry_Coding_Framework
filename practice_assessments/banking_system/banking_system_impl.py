@@ -9,6 +9,7 @@ A_DAY = 86400000
 # before calculating a balance, apply cashbacks
 # same for withdraw and deposit
 # In fact, we should apply cashbacks for all accounts on each operation
+# Keep paymentid in banking system
 
 
 class PaymentStatus(StrEnum):
@@ -19,12 +20,18 @@ class PaymentStatus(StrEnum):
 @dataclass
 class Payment:
     id: str
+    from_account: str
     amount: int
     timestamp: int
+    payout: bool = False
 
     @property
     def cashback_timestamp(self):
         return self.timestamp + A_DAY
+
+    @property
+    def cashback_amount(self):
+        return self.amount * 2 // 100
 
     def status(self, timestamp: int) -> str:
         if timestamp < self.cashback_timestamp:
@@ -58,8 +65,11 @@ class Account:
 class BankingSystemImpl(BankingSystem):
     def __init__(self):
         self.accounts: dict[str, Account] = dict()
+        self.payments: dict[str, Payment] = dict()
 
     def create_account(self, timestamp: int, account_id: str) -> bool:
+        self._process_cashbacks(timestamp)
+
         if self._exists(account_id):
             return False
 
@@ -67,6 +77,8 @@ class BankingSystemImpl(BankingSystem):
         return True
 
     def deposit(self, timestamp: int, account_id: str, amount: int) -> int | None:
+        self._process_cashbacks(timestamp)
+
         if not self._exists(account_id):
             return None
 
@@ -90,6 +102,8 @@ class BankingSystemImpl(BankingSystem):
         Return the source balance after the transfer, or None if either account
         doesn't exist, both are the same account, or the source has too little money.
         """
+        self._process_cashbacks(timestamp)
+
         if not self._exists(source_account_id) or not self._exists(target_account_id):
             return None
 
@@ -112,6 +126,8 @@ class BankingSystemImpl(BankingSystem):
         Return up to `n` accounts with the highest outgoing totals, formatted as
         "<account_id>(<outgoing_total>)". Highest first, ties by account_id ascending.
         """
+        self._process_cashbacks(timestamp)
+
         accounts = sorted(
             self.accounts.values(),
             key=lambda acc: (-acc.total_out(), acc.id),
@@ -123,3 +139,9 @@ class BankingSystemImpl(BankingSystem):
 
     def _get(self, account_id: str):
         return self.accounts[account_id]
+
+    def _process_cashbacks(self, timestamp: int) -> None:
+        for payment in self.payments.values():
+            if not payment.payout and timestamp >= payment.cashback_timestamp:
+                self.accounts[payment.from_account].deposit(payment.cashback_amount)
+                payment.payout = True
