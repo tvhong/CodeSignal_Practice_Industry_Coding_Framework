@@ -125,3 +125,18 @@ For example, to run the test suite for the file storage problem, we run:
 ```bash
 python practice_assessments/file_storage/test_simulation.py
 ```
+
+## Banking System Practice
+
+`practice_assessments/banking_system` is a second mock assessment. It follows the class-based format of the real CodeSignal industry coding assessment: you implement methods on a class, and each level has its own test file with several test cases, so partial credit works like the real thing.
+
+- Read `level1.md` first. Each `level<n>.md` repeats the earlier levels and adds the next one, so only open the next file once you've finished the current level.
+- Implement `BankingSystemImpl` in `banking_system_impl.py`. Don't edit `banking_system.py`, which defines the interface.
+- Run the tests from the `practice_assessments/banking_system` directory:
+
+```bash
+python -m unittest test_level_1          # one level
+python -m unittest discover -p "test_level_*.py"   # every level
+```
+
+The same 90-minute time limit and level time guide from above apply.
