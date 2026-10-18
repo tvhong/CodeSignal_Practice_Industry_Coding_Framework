@@ -282,5 +282,6 @@ def replay(account_id: str, time_at: int, history: list[Command]) -> int | None:
             case "merge_accounts":
                 banking_system.merge_accounts(*command.args)
 
+    banking_system._process_cashback(time_at)
     account = banking_system.accounts.get(account_id, None)
     return account.balance() if account else None
