@@ -163,7 +163,16 @@ class BankingSystemImpl(BankingSystem):
         Return "IN_PROGRESS" or "CASHBACK_RECEIVED" for `payment`, or None if the
         account or payment doesn't exist, or the payment belongs to another account.
         """
-        return None
+        if not self._exists(account_id):
+            return None
+
+        payment_id = int(payment[7:])
+        payment_obj = self._get_payment(payment_id)
+
+        if payment_obj is None or payment_obj.from_account != account_id:
+            return None
+
+        return payment_obj.status(timestamp)
 
     def _exists(self, account_id: str):
         return account_id in self.accounts
@@ -177,5 +186,9 @@ class BankingSystemImpl(BankingSystem):
                 self.accounts[payment.from_account].deposit(payment.cashback_amount)
                 payment.payout = True
 
-    def _next_payment_id(self):
+    def _next_payment_id(self) -> int:
         return len(self.payments) + 1
+
+    def _get_payment(self, payment_id: int) -> Payment | None:
+        idx = payment_id - 1
+        return self.payments[idx] if idx < len(self.payments) else None
