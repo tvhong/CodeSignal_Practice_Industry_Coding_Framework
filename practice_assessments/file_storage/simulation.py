@@ -1,3 +1,16 @@
+"""
+Lessons:
+    * data is badly named - fs would be better. More generally, think carefully about names
+    * global vars is bad but how could I improve?
+    * File class is gold
+    * Command wans't too much
+    * newspaper structure isn't suitable for short scripts
+    * Typing helps a lot
+    * Some of hte helpers are good (parse_timestamp), match case
+    * Bug: copy file forgot to rename in File class data[dest].name = dest
+
+"""
+
 import calendar
 import copy
 from dataclasses import dataclass
