@@ -5,11 +5,14 @@ from banking_system import BankingSystem
 A_DAY = 86400000
 
 
-# Done: BankingSystem owns payments and process cashbacks at each operation
-# Done: before calculating a balance, apply cashbacks
-# Done: same for withdraw and deposit
-# Done: In fact, we should apply cashbacks for all accounts on each operation
-# Keep paymentid in banking system
+# Merge account is simple
+# Update balance and total out don't use withdraw and deposit
+# Update all payments
+# CLear account 2 from accounts
+
+
+# time_at requries capturing and playback
+# Simplest is to use a partial to capture all the parameters and method name (or maybe name and *args)
 
 
 class PaymentStatus(StrEnum):
@@ -63,6 +66,10 @@ class Account:
 
     def total_out(self) -> int:
         return self._total_out
+
+    def merge(self, other: "Account"):
+        self._balance += other._balance
+        self._total_out += other._total_out
 
 
 class BankingSystemImpl(BankingSystem):
@@ -143,6 +150,8 @@ class BankingSystemImpl(BankingSystem):
         (rounded down) 24 hours later. Return "payment<k>", or None if the account
         doesn't exist or has too little money.
         """
+        self._process_cashbacks(timestamp)
+
         if not self._exists(account_id):
             return None
 
@@ -163,6 +172,8 @@ class BankingSystemImpl(BankingSystem):
         Return "IN_PROGRESS" or "CASHBACK_RECEIVED" for `payment`, or None if the
         account or payment doesn't exist, or the payment belongs to another account.
         """
+        self._process_cashbacks(timestamp)
+
         if not self._exists(account_id):
             return None
 
@@ -173,6 +184,30 @@ class BankingSystemImpl(BankingSystem):
             return None
 
         return payment_obj.status(timestamp)
+
+    def merge_accounts(
+        self, timestamp: int, account_id_1: str, account_id_2: str
+    ) -> bool:
+        """
+        Merge `account_id_2` into `account_id_1` and remove `account_id_2`.
+        Return False if the ids are the same or either account doesn't exist.
+        """
+        self._process_cashbacks(timestamp)
+        if not self._exists(account_id_1) or not self._exists(account_id_2):
+            return False
+
+        if account_id_1 == account_id_2:
+            return False
+
+        account_1 = self._get(account_id_1)
+        account_2 = self._get(account_id_2)
+
+        account_1.merge(account_2)
+        self._merge_payments(account_id_1, account_id_2)
+
+        self.accounts.pop(account_id_2)
+
+        return True
 
     def _exists(self, account_id: str):
         return account_id in self.accounts
@@ -192,3 +227,8 @@ class BankingSystemImpl(BankingSystem):
     def _get_payment(self, payment_id: int) -> Payment | None:
         idx = payment_id - 1
         return self.payments[idx] if idx < len(self.payments) else None
+
+    def _merge_payments(self, account_id_1: str, account_id_2: str) -> None:
+        for payment in self.payments:
+            if payment.from_account == account_id_2:
+                payment.from_account = account_id_1

@@ -86,3 +86,5 @@ The cashback isn't paid right away: it arrives one day later.
     - `"IN_PROGRESS"` if its cashback hasn't been deposited yet.
     - `"CASHBACK_RECEIVED"` if its cashback has been deposited.
   - Return `None` if `account_id` doesn't exist, `payment` doesn't exist, or `payment` was made from a different account.
+
+36m left
