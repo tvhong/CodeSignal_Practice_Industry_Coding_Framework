@@ -13,7 +13,8 @@ A_DAY = 86400000
 
 
 # time_at requries capturing and playback
-# Simplest is to use a partial to capture all the parameters and method name (or maybe name and *args)
+# Store all the parameters and method name (or maybe name and *args)
+# Then replay
 
 
 class PaymentStatus(StrEnum):
@@ -184,7 +185,7 @@ class BankingSystemImpl(BankingSystem):
         Return "IN_PROGRESS" or "CASHBACK_RECEIVED" for `payment`, or None if the
         account or payment doesn't exist, or the payment belongs to another account.
         """
-        self._process(timestamp, "get_payment_status", [timestamp, account_id, payment])
+        self._process_cashback(timestamp)
 
         if not self._exists(account_id):
             return None
@@ -223,13 +224,22 @@ class BankingSystemImpl(BankingSystem):
 
         return True
 
+    def get_balance(self, timestamp: int, account_id: str, time_at: int) -> int | None:
+        """
+        Return the balance `account_id` had at `time_at`, or None if the account
+        didn't exist at that time.
+        """
+        self._process_cashback(timestamp)
+        account_balance = replay(account_id, time_at, self.history)
+        return account_balance
+
     def _exists(self, account_id: str):
         return account_id in self.accounts
 
     def _get(self, account_id: str):
         return self.accounts[account_id]
 
-    def _process(self, timestamp: int, func: str, *args: list[Any]) -> None:
+    def _process(self, timestamp: int, func: str, args: list[Any]) -> None:
         self._process_cashback(timestamp)
         self.history.append(Command(func, args))
 
@@ -250,3 +260,27 @@ class BankingSystemImpl(BankingSystem):
         for payment in self.payments:
             if payment.from_account == account_id_2:
                 payment.from_account = account_id_1
+
+
+def replay(account_id: str, time_at: int, history: list[Command]) -> int | None:
+    banking_system = BankingSystemImpl()
+
+    for command in history:
+        timestamp = int(command.args[0])
+        if timestamp > time_at:
+            break
+
+        match command.func:
+            case "create_account":
+                banking_system.create_account(*command.args)
+            case "deposit":
+                banking_system.deposit(*command.args)
+            case "transfer":
+                banking_system.transfer(*command.args)
+            case "pay":
+                banking_system.pay(*command.args)
+            case "merge_accounts":
+                banking_system.merge_accounts(*command.args)
+
+    account = banking_system.accounts.get(account_id, None)
+    return account.balance() if account else None
