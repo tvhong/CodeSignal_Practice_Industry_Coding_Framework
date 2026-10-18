@@ -112,3 +112,5 @@ Customers can now combine two accounts into one, and the bank wants to look up a
     or it had been merged into another account (at or after the merge timestamp, until it is created again).
   - For the account that received a merge (`account_id_1`), balances before the merge timestamp don't include
     `account_id_2`'s money. Balances from the merge timestamp on do.
+
+Finished with 8 min to spare
