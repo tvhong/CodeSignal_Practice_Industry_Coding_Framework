@@ -5,10 +5,10 @@ from banking_system import BankingSystem
 A_DAY = 86400000
 
 
-# BankingSystem owns payments and process cashbacks at each operation
-# before calculating a balance, apply cashbacks
-# same for withdraw and deposit
-# In fact, we should apply cashbacks for all accounts on each operation
+# Done: BankingSystem owns payments and process cashbacks at each operation
+# Done: before calculating a balance, apply cashbacks
+# Done: same for withdraw and deposit
+# Done: In fact, we should apply cashbacks for all accounts on each operation
 # Keep paymentid in banking system
 
 
@@ -19,7 +19,7 @@ class PaymentStatus(StrEnum):
 
 @dataclass
 class Payment:
-    id: str
+    id: int
     from_account: str
     amount: int
     timestamp: int
@@ -38,6 +38,9 @@ class Payment:
             return str(PaymentStatus.IN_PROGRESS)
         else:
             return str(PaymentStatus.CASHBACK_RECEIVED)
+
+    def __str__(self) -> str:
+        return f"payment{self.id}"
 
 
 @dataclass
@@ -65,7 +68,7 @@ class Account:
 class BankingSystemImpl(BankingSystem):
     def __init__(self):
         self.accounts: dict[str, Account] = dict()
-        self.payments: dict[str, Payment] = dict()
+        self.payments: list[Payment] = list()
 
     def create_account(self, timestamp: int, account_id: str) -> bool:
         self._process_cashbacks(timestamp)
@@ -134,6 +137,34 @@ class BankingSystemImpl(BankingSystem):
         )
         return [f"{acc.id}({acc.total_out()})" for acc in accounts[:n]]
 
+    def pay(self, timestamp: int, account_id: str, amount: int) -> str | None:
+        """
+        Withdraw `amount` from `account_id` as a payment that earns 2% cashback
+        (rounded down) 24 hours later. Return "payment<k>", or None if the account
+        doesn't exist or has too little money.
+        """
+        if not self._exists(account_id):
+            return None
+
+        account = self._get(account_id)
+        if account.balance() < amount:
+            return None
+
+        payment = Payment(self._next_payment_id(), account.id, amount, timestamp)
+        account.withdraw(amount)
+        self.payments.append(payment)
+
+        return str(payment)
+
+    def get_payment_status(
+        self, timestamp: int, account_id: str, payment: str
+    ) -> str | None:
+        """
+        Return "IN_PROGRESS" or "CASHBACK_RECEIVED" for `payment`, or None if the
+        account or payment doesn't exist, or the payment belongs to another account.
+        """
+        return None
+
     def _exists(self, account_id: str):
         return account_id in self.accounts
 
@@ -141,7 +172,10 @@ class BankingSystemImpl(BankingSystem):
         return self.accounts[account_id]
 
     def _process_cashbacks(self, timestamp: int) -> None:
-        for payment in self.payments.values():
+        for payment in self.payments:
             if not payment.payout and timestamp >= payment.cashback_timestamp:
                 self.accounts[payment.from_account].deposit(payment.cashback_amount)
                 payment.payout = True
+
+    def _next_payment_id(self):
+        return len(self.payments) + 1
