@@ -118,6 +118,18 @@ class Level3Tests(unittest.TestCase):
         self.assertEqual(self.system.deposit(300 + MILLISECONDS_IN_1_DAY, "account1", 1), 8531)
         self.assertEqual(self.system.deposit(301 + MILLISECONDS_IN_1_DAY, "account2", 1), 3041)
 
+    def test_level_3_case_10_unknown_payment_ids(self):
+        self.system.create_account(1, "account1")
+        self.system.deposit(2, "account1", 1000)
+        self.assertEqual(self.system.pay(3, "account1", 100), "payment1")
+        self.assertEqual(self.system.pay(4, "account1", 100), "payment2")
+        self.assertIsNone(self.system.get_payment_status(5, "account1", "payment0"))
+        self.assertIsNone(self.system.get_payment_status(6, "account1", "payment-1"))
+        self.assertIsNone(self.system.get_payment_status(7, "account1", "payment3"))
+        self.assertIsNone(self.system.get_payment_status(8, "account1", "payment"))
+        self.assertIsNone(self.system.get_payment_status(9, "account1", "bogus"))
+        self.assertEqual(self.system.get_payment_status(10, "account1", "payment2"), "IN_PROGRESS")
+
 
 if __name__ == "__main__":
     unittest.main()
