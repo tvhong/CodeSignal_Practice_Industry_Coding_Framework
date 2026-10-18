@@ -1,11 +1,30 @@
-from dataclasses import dataclass
 from banking_system import BankingSystem
 
 
-@dataclass
 class Account:
     id: str
-    balance: int
+    _balance: int
+    _total_out: int
+
+    def __init__(self, id: str, balance: int = 0) -> None:
+        self.id = id
+        self._balance = balance
+        self._total_out = 0
+
+    def withdraw(self, amount: int) -> int:
+        self._balance -= amount
+        self._total_out += amount
+        return self._balance
+
+    def deposit(self, amount: int) -> int:
+        self._balance += amount
+        return self._balance
+
+    def balance(self) -> int:
+        return self._balance
+
+    def total_out(self) -> int:
+        return self._total_out
 
 
 class BankingSystemImpl(BankingSystem):
@@ -27,9 +46,9 @@ class BankingSystemImpl(BankingSystem):
             raise RuntimeError("Deposit Amount must be more than 0")
 
         account = self._get(account_id)
-        account.balance += amount
+        account.deposit(amount)
 
-        return account.balance
+        return account.balance()
 
     def transfer(
         self,
@@ -52,13 +71,24 @@ class BankingSystemImpl(BankingSystem):
         source_account = self._get(source_account_id)
         target_account = self._get(target_account_id)
 
-        if source_account.balance < amount:
+        if source_account.balance() < amount:
             return None
 
-        source_account.balance -= amount
-        target_account.balance += amount
+        source_account.withdraw(amount)
+        target_account.deposit(amount)
 
-        return source_account.balance
+        return source_account.balance()
+
+    def top_spenders(self, timestamp: int, n: int) -> list[str]:
+        """
+        Return up to `n` accounts with the highest outgoing totals, formatted as
+        "<account_id>(<outgoing_total>)". Highest first, ties by account_id ascending.
+        """
+        accounts = sorted(
+            self.accounts.values(),
+            key=lambda acc: (-acc.total_out(), acc.id),
+        )
+        return [f"{acc.id}({acc.total_out()})" for acc in accounts[:n]]
 
     def _exists(self, account_id: str):
         return account_id in self.accounts

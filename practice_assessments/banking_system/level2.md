@@ -61,3 +61,5 @@ The bank wants to see which accounts move the most money out.
   - Format each entry as `"<account_id>(<outgoing_total>)"`, for example `["account2(500)", "account1(0)"]`.
   - Accounts with an outgoing total of `0` are included.
   - If there are fewer than `n` accounts, return all of them.
+
+FInish level 2 at 1:09 left
