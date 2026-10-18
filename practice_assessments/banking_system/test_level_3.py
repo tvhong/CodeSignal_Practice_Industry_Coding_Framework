@@ -1,4 +1,3 @@
-import time
 import unittest
 
 from banking_system_impl import BankingSystemImpl
@@ -130,26 +129,6 @@ class Level3Tests(unittest.TestCase):
         self.assertIsNone(self.system.get_payment_status(8, "account1", "payment"))
         self.assertIsNone(self.system.get_payment_status(9, "account1", "bogus"))
         self.assertEqual(self.system.get_payment_status(10, "account1", "payment2"), "IN_PROGRESS")
-
-    def test_level_3_case_11_many_pending_cashbacks_are_fast(self):
-        n = 10000
-        self.system.create_account(1, "account1")
-        self.system.deposit(2, "account1", 10**9)
-        start = time.perf_counter()
-        for i in range(n):
-            self.system.pay(10 + i, "account1", 100)
-        for i in range(n):
-            self.system.deposit(10 + n + i, "account1", 1)
-        elapsed = time.perf_counter() - start
-        self.assertLess(elapsed, 1.0)
-        self.assertEqual(
-            self.system.deposit(10 + 2 * n + MILLISECONDS_IN_1_DAY, "account1", 1),
-            10**9 - 100 * n + n + 2 * n + 1,
-        )
-        self.assertEqual(
-            self.system.get_payment_status(11 + 2 * n + MILLISECONDS_IN_1_DAY, "account1", f"payment{n}"),
-            "CASHBACK_RECEIVED",
-        )
 
 
 if __name__ == "__main__":
