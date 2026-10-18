@@ -1,15 +1,34 @@
+from dataclasses import dataclass
 from banking_system import BankingSystem
 
+A_DAY = 86400000
 
+
+# Balance must have timestamp
+# same for deposit and withdraw
+# cashback is now a separate state -> separate object
+# an account owns multiple cashbacks
+# before calculating a balance, apply cashbacks
+# same for withdraw and deposit
+# In fact, we should apply cashbacks for all accounts on each operation
+
+
+@dataclass
+class Payment:
+    id: str
+    amount: int
+    timestamp: int
+
+    @property
+    def cashback_timestamp(self):
+        return self.timestamp + A_DAY
+
+
+@dataclass
 class Account:
     id: str
-    _balance: int
-    _total_out: int
-
-    def __init__(self, id: str, balance: int = 0) -> None:
-        self.id = id
-        self._balance = balance
-        self._total_out = 0
+    _balance: int = 0
+    _total_out: int = 0
 
     def withdraw(self, amount: int) -> int:
         self._balance -= amount
