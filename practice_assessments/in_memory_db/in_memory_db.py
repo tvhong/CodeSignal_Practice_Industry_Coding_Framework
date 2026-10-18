@@ -40,3 +40,40 @@ class InMemoryDB(ABC):
         Like `scan`, but only fields whose name starts with `prefix`.
         """
         return []
+
+    def set_at(self, timestamp: int, key: str, field: str, value: str) -> None:
+        """
+        Like `set`. The field never expires, and any existing TTL is removed.
+        """
+        return None
+
+    def set_at_with_ttl(self, timestamp: int, key: str, field: str, value: str, ttl: int) -> None:
+        """
+        Like `set_at`, but the field is visible only until `timestamp + ttl`
+        (exclusive).
+        """
+        return None
+
+    def delete_at(self, timestamp: int, key: str, field: str) -> bool:
+        """
+        Like `delete`. Return False if the field has expired.
+        """
+        return False
+
+    def get_at(self, timestamp: int, key: str, field: str) -> str | None:
+        """
+        Like `get`. Return None if the field has expired.
+        """
+        return None
+
+    def scan_at(self, timestamp: int, key: str) -> list[str]:
+        """
+        Like `scan`, but only fields visible at `timestamp`.
+        """
+        return []
+
+    def scan_by_prefix_at(self, timestamp: int, key: str, prefix: str) -> list[str]:
+        """
+        Like `scan_by_prefix`, but only fields visible at `timestamp`.
+        """
+        return []
