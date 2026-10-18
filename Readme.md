@@ -125,3 +125,19 @@ For example, to run the test suite for the file storage problem, we run:
 ```bash
 python practice_assessments/file_storage/test_simulation.py
 ```
+
+## In-Memory Database Practice
+
+`practice_assessments/in_memory_db` is a mock assessment in the class-based format of the real CodeSignal industry coding assessment: you implement methods on a class, and each level has its own test file with several test cases, so partial credit works like the real thing.
+
+- Read `level1.md` first. Each `level<n>.md` repeats the earlier levels and adds the next one, so only open the next file once you've finished the current level.
+- Implement `InMemoryDBImpl` in `in_memory_db_impl.py`. Don't edit `in_memory_db.py`, which defines the interface.
+- Levels 1 and 2 have no timestamps. Level 3 adds time, so expect to refactor.
+- Run the tests from the `practice_assessments/in_memory_db` directory:
+
+```bash
+python -m unittest test_level_1          # one level
+python -m unittest discover -p "test_level_*.py"   # every level
+```
+
+The same 90-minute time limit and level time guide from above apply.
