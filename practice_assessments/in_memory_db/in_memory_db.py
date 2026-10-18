@@ -27,3 +27,16 @@ class InMemoryDB(ABC):
         Return True if it was removed, False if the record or field doesn't exist.
         """
         return False
+
+    def scan(self, key: str) -> list[str]:
+        """
+        Return every field of the record `key` as "<field>(<value>)", sorted by
+        field name. Return [] if the record doesn't exist.
+        """
+        return []
+
+    def scan_by_prefix(self, key: str, prefix: str) -> list[str]:
+        """
+        Like `scan`, but only fields whose name starts with `prefix`.
+        """
+        return []
