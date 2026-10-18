@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import StrEnum
+from typing import Any
 from banking_system import BankingSystem
 
 A_DAY = 86400000
@@ -72,13 +73,20 @@ class Account:
         self._total_out += other._total_out
 
 
+@dataclass
+class Command:
+    func: str
+    args: list[Any]
+
+
 class BankingSystemImpl(BankingSystem):
     def __init__(self):
         self.accounts: dict[str, Account] = dict()
         self.payments: list[Payment] = list()
+        self.history: list[Command] = list()
 
     def create_account(self, timestamp: int, account_id: str) -> bool:
-        self._process(timestamp)
+        self._process(timestamp, "create_account", [timestamp, account_id])
 
         if self._exists(account_id):
             return False
@@ -87,7 +95,7 @@ class BankingSystemImpl(BankingSystem):
         return True
 
     def deposit(self, timestamp: int, account_id: str, amount: int) -> int | None:
-        self._process(timestamp)
+        self._process(timestamp, "deposit", [timestamp, account_id, amount])
 
         if not self._exists(account_id):
             return None
@@ -112,7 +120,11 @@ class BankingSystemImpl(BankingSystem):
         Return the source balance after the transfer, or None if either account
         doesn't exist, both are the same account, or the source has too little money.
         """
-        self._process(timestamp)
+        self._process(
+            timestamp,
+            "transfer",
+            [timestamp, source_account_id, target_account_id, amount],
+        )
 
         if not self._exists(source_account_id) or not self._exists(target_account_id):
             return None
@@ -136,7 +148,7 @@ class BankingSystemImpl(BankingSystem):
         Return up to `n` accounts with the highest outgoing totals, formatted as
         "<account_id>(<outgoing_total>)". Highest first, ties by account_id ascending.
         """
-        self._process(timestamp)
+        self._process(timestamp, "top_spenders", [timestamp, n])
 
         accounts = sorted(
             self.accounts.values(),
@@ -150,7 +162,7 @@ class BankingSystemImpl(BankingSystem):
         (rounded down) 24 hours later. Return "payment<k>", or None if the account
         doesn't exist or has too little money.
         """
-        self._process(timestamp)
+        self._process(timestamp, "pay", [timestamp, account_id, amount])
 
         if not self._exists(account_id):
             return None
@@ -172,7 +184,7 @@ class BankingSystemImpl(BankingSystem):
         Return "IN_PROGRESS" or "CASHBACK_RECEIVED" for `payment`, or None if the
         account or payment doesn't exist, or the payment belongs to another account.
         """
-        self._process(timestamp)
+        self._process(timestamp, "get_payment_status", [timestamp, account_id, payment])
 
         if not self._exists(account_id):
             return None
@@ -192,7 +204,9 @@ class BankingSystemImpl(BankingSystem):
         Merge `account_id_2` into `account_id_1` and remove `account_id_2`.
         Return False if the ids are the same or either account doesn't exist.
         """
-        self._process(timestamp)
+        self._process(
+            timestamp, "merge_accounts", [timestamp, account_id_1, account_id_2]
+        )
         if not self._exists(account_id_1) or not self._exists(account_id_2):
             return False
 
@@ -215,8 +229,9 @@ class BankingSystemImpl(BankingSystem):
     def _get(self, account_id: str):
         return self.accounts[account_id]
 
-    def _process(self, timestamp: int) -> None:
+    def _process(self, timestamp: int, func: str, *args: list[Any]) -> None:
         self._process_cashback(timestamp)
+        self.history.append(Command(func, args))
 
     def _process_cashback(self, timestamp: int) -> None:
         for payment in self.payments:
