@@ -1,16 +1,19 @@
 from dataclasses import dataclass
+from enum import StrEnum
 from banking_system import BankingSystem
 
 A_DAY = 86400000
 
 
-# Balance must have timestamp
-# same for deposit and withdraw
-# cashback is now a separate state -> separate object
-# an account owns multiple cashbacks
+# BankingSystem owns payments and process cashbacks at each operation
 # before calculating a balance, apply cashbacks
 # same for withdraw and deposit
 # In fact, we should apply cashbacks for all accounts on each operation
+
+
+class PaymentStatus(StrEnum):
+    IN_PROGRESS = "IN_PROGRESS"
+    CASHBACK_RECEIVED = "CASHBACK_RECEIVED"
 
 
 @dataclass
@@ -22,6 +25,12 @@ class Payment:
     @property
     def cashback_timestamp(self):
         return self.timestamp + A_DAY
+
+    def status(self, timestamp: int) -> str:
+        if timestamp < self.cashback_timestamp:
+            return str(PaymentStatus.IN_PROGRESS)
+        else:
+            return str(PaymentStatus.CASHBACK_RECEIVED)
 
 
 @dataclass
