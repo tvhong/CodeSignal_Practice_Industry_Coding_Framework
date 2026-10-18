@@ -77,3 +77,17 @@ class InMemoryDB(ABC):
         Like `scan_by_prefix`, but only fields visible at `timestamp`.
         """
         return []
+
+    def backup(self, timestamp: int) -> int:
+        """
+        Save the visible fields and their remaining TTLs.
+        Return the number of records with at least one visible field.
+        """
+        return 0
+
+    def restore(self, timestamp: int, timestamp_to_restore: int) -> None:
+        """
+        Replace the database with the latest backup taken at or before
+        `timestamp_to_restore`. Remaining TTLs restart from `timestamp`.
+        """
+        return None
